@@ -2,7 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom animation delays */
+/* Global theme transition */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Ensure smooth transitions for theme changes */
+html {
+  transition: background-color 0.3s ease;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom animation delays for blob animations */
 .animation-delay-2000 {
   animation-delay: 2s;
 }
@@ -11,39 +27,57 @@
   animation-delay: 4s;
 }
 
-/* Global styles */
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: #0f0f23;
-  color: white;
+/* Fade in animation for mobile menu */
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+.animate-fade-in-down {
+  animation: fade-in-down 0.3s ease-out;
 }
 
-/* Custom scrollbar */
+/* Ensure proper contrast for both themes */
+.dark {
+  color-scheme: dark;
+}
+
+/* Improve focus styles for accessibility */
+*:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for better theme integration */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a2e;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+  background: rgba(156, 163, 175, 0.5);
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #7c3aed, #db2777);
+  background: rgba(156, 163, 175, 0.7);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.7);
 }
 
 /* Glass morphism effect */

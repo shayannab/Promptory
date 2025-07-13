@@ -32,15 +32,15 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
-      <form onSubmit={handleSubmit} className="bg-white/10 p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-white">Sign Up</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-black">
+      <form onSubmit={handleSubmit} className="bg-white/80 dark:bg-white/10 p-8 rounded-2xl shadow-lg w-full max-w-md backdrop-blur-sm border border-gray-200/50 dark:border-white/10">
+        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Sign Up</h2>
         <input
           type="text"
           placeholder="Full Name"
           value={fullName}
           onChange={e => setFullName(e.target.value)}
-          className="w-full mb-4 px-4 py-3 rounded-lg bg-white/5 text-white border border-white/10 focus:outline-none"
+          className="w-full mb-4 px-4 py-3 rounded-lg bg-white/60 dark:bg-white/5 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-gray-400"
           required
         />
         <input
@@ -48,7 +48,7 @@ export default function Signup() {
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          className="w-full mb-4 px-4 py-3 rounded-lg bg-white/5 text-white border border-white/10 focus:outline-none"
+          className="w-full mb-4 px-4 py-3 rounded-lg bg-white/60 dark:bg-white/5 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-gray-400"
           required
         />
         <div className="relative mb-6">
@@ -57,13 +57,13 @@ export default function Signup() {
             placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-white/10 focus:outline-none pr-12"
+            className="w-full px-4 py-3 rounded-lg bg-white/60 dark:bg-white/5 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12 placeholder-gray-600 dark:placeholder-gray-400"
             required
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400 focus:outline-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none"
             tabIndex={0}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
@@ -81,9 +81,9 @@ export default function Signup() {
         >
           {loading ? 'Signing up...' : 'Sign Up'}
         </button>
-        <div className="mt-4 text-gray-400 text-sm text-center">
+        <div className="mt-4 text-gray-600 dark:text-gray-400 text-sm text-center">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-400 hover:underline">Login</Link>
+          <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline">Login</Link>
         </div>
       </form>
     </div>

@@ -3,6 +3,35 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import toast, { Toaster } from 'react-hot-toast';
 import { useUser } from '../utils/UserContext';
+import { getPromptFeedbackFromGroq } from '../utils/groqClient';
+import QuickActionsMenu from '../components/sections/QuickActionsMenu';
+import { motion } from 'framer-motion';
+
+function FeedbackModal({ show, onClose, feedback, loading }) {
+  if (!show) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-center p-4">
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full border border-gray-200/50 dark:border-white/10">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Prompt Feedback</h3>
+        {loading ? (
+          <div className="text-gray-700 dark:text-white text-center">Getting feedback...</div>
+        ) : feedback ? (
+          <div className="space-y-3">
+            <div><span className="font-semibold text-blue-600 dark:text-blue-300">Rating:</span> <span className="text-gray-900 dark:text-white">{feedback.rating} / 5</span></div>
+            <div><span className="font-semibold text-blue-600 dark:text-blue-300">Tone:</span> <span className="text-gray-900 dark:text-white">{feedback.tone}</span></div>
+            <div><span className="font-semibold text-blue-600 dark:text-blue-300">Clarity:</span> <span className="text-gray-900 dark:text-white">{feedback.clarity}</span></div>
+            <div><span className="font-semibold text-blue-600 dark:text-blue-300">Improvement:</span> <span className="text-gray-900 dark:text-white">{feedback.improvement}</span></div>
+          </div>
+        ) : (
+          <div className="text-red-600 dark:text-red-400">Failed to get feedback. Try again later.</div>
+        )}
+        <div className="flex justify-end mt-6">
+          <button onClick={onClose} className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Dashboard() {
   const { user, displayName } = useUser();
@@ -11,6 +40,8 @@ function Dashboard() {
   const [promptToDelete, setPromptToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [feedbackModal, setFeedbackModal] = useState({ show: false, loading: false, feedback: null });
+  const [selectPromptModal, setSelectPromptModal] = useState(false);
 
   useEffect(() => {
     if (user) fetchPrompts();
@@ -60,6 +91,15 @@ function Dashboard() {
     toast.success('🔗 Link copied!');
   };
 
+  const handleGetFeedback = async (prompt) => {
+    setFeedbackModal({ show: true, loading: true, feedback: null });
+    const feedback = await getPromptFeedbackFromGroq(prompt.title, prompt.description);
+    setFeedbackModal({ show: true, loading: false, feedback });
+  };
+
+  // For QuickActionsMenu: open prompt selector for feedback
+  const handleQuickFeedback = () => setSelectPromptModal(true);
+
   // Filter prompts based on search and category
   const filteredPrompts = prompts.filter(prompt => {
     const matchesSearch = prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,37 +120,37 @@ function Dashboard() {
   // Redirect to login if not logged in
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
-        <div className="bg-white/10 p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
-          <h2 className="text-2xl font-bold mb-6 text-white">Please log in to view your dashboard.</h2>
-          <a href="/login" className="text-blue-400 hover:underline">Go to Login</a>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-black">
+        <div className="bg-white/80 dark:bg-white/10 p-8 rounded-2xl shadow-lg w-full max-w-md text-center backdrop-blur-sm">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Please log in to view your dashboard.</h2>
+          <a href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">Go to Login</a>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background blobs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-72 h-72 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-6 sm:py-8 pb-20">
         <Toaster position="top-center" reverseOrder={false} />
         {/* Personal Greeting */}
-        <div className="mb-6 text-2xl font-bold text-white">
+        <div className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
           {user ? (displayName ? `Hey, ${displayName} 👋` : `Hey, ${user.email}`) : 'Hey, you!'}
         </div>
         {/* Header Section */}
         <div className="mb-12">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
             <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent mb-4">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-600 to-cyan-600 dark:from-white dark:via-blue-100 dark:to-cyan-100 bg-clip-text text-transparent mb-4">
                 Dashboard
               </h1>
-              <p className="text-xl text-gray-400">Manage your AI prompts with ease</p>
+              <p className="text-xl text-gray-600 dark:text-gray-400">Manage your AI prompts with ease</p>
             </div>
             <Link
               to="/add"
@@ -122,33 +162,33 @@ function Dashboard() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Total Prompts</p>
-                  <p className="text-3xl font-bold text-white">{totalPrompts}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Total Prompts</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalPrompts}</p>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                   <span className="text-xl">📝</span>
                 </div>
               </div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Categories</p>
-                  <p className="text-3xl font-bold text-white">{totalCategories}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Categories</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalCategories}</p>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center">
                   <span className="text-xl">🏷️</span>
                 </div>
               </div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">AI Enhanced</p>
-                  <p className="text-3xl font-bold text-white">100%</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">AI Enhanced</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">100%</p>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
                   <span className="text-xl">🤖</span>
@@ -165,13 +205,13 @@ function Dashboard() {
                 placeholder="Search prompts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 bg-white/5 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-xl text-gray-900 dark:text-white placeholder-gray-600 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-colors"
+              className="px-4 py-3 bg-white/5 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
             >
               {categories.map(category => (
                 <option key={category} value={category} className="bg-gray-800">
@@ -194,8 +234,8 @@ function Dashboard() {
             <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">📝</span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No prompts found</h3>
-            <p className="text-gray-400 mb-6">Create your first prompt to get started!</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No prompts found</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Create your first prompt to get started!</p>
             <Link
               to="/add"
               className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-300"
@@ -204,13 +244,21 @@ function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredPrompts.map((prompt) => (
-              <div key={prompt.id} className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105">
-                <div className="flex items-start justify-between mb-4">
+              <motion.div
+                key={prompt.id}
+                className="group bg-white/5 dark:bg-black/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-white/10 shadow-xl hover:bg-white/10 dark:hover:bg-black/60 transition-all duration-300 hover:scale-[1.03] focus-within:scale-[1.03] ring-0 focus-within:ring-2 focus-within:ring-blue-400"
+                whileHover={{ scale: 1.03, boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)' }}
+                whileTap={{ scale: 0.98 }}
+                tabIndex={0}
+              >
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-white group-hover:text-blue-300 transition-colors flex items-center gap-1">
-                      {prompt.is_public ? <span title="Public"><span role="img" aria-label="public">🌍</span></span> : <span title="Private"><span role="img" aria-label="private">🔒</span></span>}
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-300 transition-colors flex items-center gap-1">
+                      {prompt.is_public && (
+                        <span title="Public" className="px-2 py-1 bg-green-600/80 text-white text-xs rounded-full mr-2 animate-pulse">Public</span>
+                      )}
                       {prompt.title}
                     </h3>
                     {/* Share icon with tooltip */}
@@ -228,13 +276,15 @@ function Dashboard() {
                     {getCategoryLabel(prompt.category)}
                   </span>
                 </div>
-                <p className="text-gray-400 mb-4 line-clamp-3 leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed text-base">
                   {prompt.description}
                 </p>
-                <div className="text-xs text-gray-500 mb-4">
-                  Created: {new Date(prompt.created_at).toLocaleDateString()}
+                <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  <span>Created: {new Date(prompt.created_at).toLocaleString()}</span>
+                  {prompt.updated_at && (
+                    <span>Last Edited: {new Date(prompt.updated_at).toLocaleString()}</span>
+                  )}
                 </div>
-                {/* Public toggle */}
                 <div className="flex items-center gap-2 mb-4">
                   <input
                     type="checkbox"
@@ -243,7 +293,7 @@ function Dashboard() {
                     onChange={() => handlePublicToggle(prompt)}
                     className="form-checkbox h-4 w-4 text-blue-600 transition-all"
                   />
-                  <label htmlFor={`public-toggle-${prompt.id}`} className="text-sm text-gray-300 cursor-pointer select-none" title="Anyone with the link can view this prompt">
+                  <label htmlFor={`public-toggle-${prompt.id}`} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none" title="Anyone with the link can view this prompt">
                     Make Public
                   </label>
                 </div>
@@ -260,8 +310,20 @@ function Dashboard() {
                   >
                     Delete
                   </button>
+                  <button
+                    onClick={() => handleGetFeedback(prompt)}
+                    className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 transition-all duration-300 border border-purple-700/30"
+                  >
+                    Get Feedback
+                  </button>
+                  <Link
+                    to={`/playground?promptId=${prompt.id}`}
+                    className="flex-1 bg-black/30 text-cyan-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-cyan-700 hover:text-white transition-all duration-300 border border-cyan-700/30 text-center"
+                  >
+                    Try in Playground
+                  </Link>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
@@ -270,9 +332,9 @@ function Dashboard() {
       {/* Delete Confirmation Modal */}
       {promptToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-center p-4">
-          <div className="bg-gray-900/95 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full border border-white/10">
-            <h3 className="text-2xl font-bold text-white mb-4">Delete Prompt?</h3>
-            <p className="text-gray-400 mb-8">This action cannot be undone. Are you sure you want to delete this prompt?</p>
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full border border-gray-200/50 dark:border-white/10">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Delete Prompt?</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">This action cannot be undone. Are you sure you want to delete this prompt?</p>
             <div className="flex gap-4">
               <button
                 onClick={async () => {
@@ -299,6 +361,39 @@ function Dashboard() {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <FeedbackModal
+        show={feedbackModal.show}
+        loading={feedbackModal.loading}
+        feedback={feedbackModal.feedback}
+        onClose={() => setFeedbackModal({ show: false, loading: false, feedback: null })}
+      />
+      <QuickActionsMenu onFeedback={handleQuickFeedback} />
+      {/* Prompt Selector Modal for Quick Feedback */}
+      {selectPromptModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-center p-4">
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full border border-gray-200/50 dark:border-white/10">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Select a Prompt for Feedback</h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {prompts.map((prompt) => (
+                <button
+                  key={prompt.id}
+                  onClick={async () => {
+                    setSelectPromptModal(false);
+                    await handleGetFeedback(prompt);
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-lg bg-gray-100/80 dark:bg-white/10 hover:bg-blue-600 hover:text-white text-gray-900 dark:text-white font-semibold transition-all"
+                >
+                  <div className="font-bold">{prompt.title}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{prompt.description}</div>
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end mt-6">
+              <button onClick={() => setSelectPromptModal(false)} className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-white">Cancel</button>
             </div>
           </div>
         </div>

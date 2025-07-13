@@ -83,3 +83,47 @@ export const fetchDescriptionFromGroq = async (title, mode = "normal", currentDe
     return null;
   }
 };
+
+export const getPromptFeedbackFromGroq = async (title, description) => {
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "llama3-70b-8192",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert prompt reviewer. Given a prompt's title and description, provide a JSON object with: rating (1-5), tone suggestion, clarity suggestion, and improvement suggestion. Respond ONLY with a valid JSON object with keys: rating, tone, clarity, improvement.",
+          },
+          {
+            role: "user",
+            content: `Title: ${title}\nDescription: ${description}`,
+          },
+        ],
+        temperature: 0.3,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error("❌ GROQ API Feedback Error:", data);
+      return null;
+    }
+    const content = data?.choices?.[0]?.message?.content;
+    try {
+      const feedback = JSON.parse(content);
+      return feedback;
+    } catch (e) {
+      console.error("Failed to parse Groq feedback JSON:", content);
+      return null;
+    }
+  } catch (err) {
+    console.error("🔥 Error getting prompt feedback:", err);
+    return null;
+  }
+};

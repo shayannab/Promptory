@@ -189,18 +189,18 @@ export default function Playground() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
-      <div className="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-white text-center">Playground</h2>
-        <div className="mb-4 text-right text-sm text-orange-400 font-semibold">🔥 Prompts run: {promptsRun}</div>
+    <div className="min-h-screen flex items-center justify-center px-2 sm:px-4 py-8 sm:py-12">
+      <div className="bg-gray-900 p-4 sm:p-8 rounded-xl shadow-lg w-full max-w-lg sm:max-w-2xl mx-auto">
+        <h2 className="text-2xl sm:text-2xl font-bold mb-6 text-white text-center">Playground</h2>
+        <div className="mb-4 text-right text-xs sm:text-sm text-orange-400 font-semibold">🔥 Prompts run: {promptsRun}</div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="model" className="block text-sm text-gray-300 mb-2">Model</label>
+            <label htmlFor="model" className="block text-xs sm:text-sm text-gray-300 mb-2">Model</label>
             <select
               id="model"
               value={model}
               onChange={e => setModel(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs sm:text-base"
               disabled={loading}
             >
               {MODELS.map(m => (

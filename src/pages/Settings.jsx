@@ -19,12 +19,12 @@ function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      <div className="max-w-4xl mx-auto px-8 py-12">
-        <div className="bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+    <div className="min-h-screen px-2 sm:px-4 py-8 sm:py-12">
+      <div className="max-w-lg sm:max-w-4xl mx-auto px-0 sm:px-8">
+        <div className="bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Profile Settings</h1>
-            <p className="text-gray-400">Manage your account settings and preferences</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Profile Settings</h1>
+            <p className="text-gray-400 text-sm sm:text-base">Manage your account settings and preferences</p>
           </div>
 
           <div className="space-y-8">

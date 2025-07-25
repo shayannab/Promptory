@@ -55,14 +55,8 @@ function App() {
     <ThemeProvider>
       <UserProvider>
         <Router>
-          <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-black transition-all duration-500 ease-in-out">
-            {/* Animated background blobs */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 dark:bg-blue-500/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-400/20 dark:bg-cyan-500/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-              <div className="absolute top-40 left-40 w-80 h-80 bg-purple-400/20 dark:bg-purple-500/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-            </div>
-            
+          <div className="min-h-screen w-full bg-gradient-to-br from-[#111111] via-[#1e1e1e] to-[#2c2c2c] text-white">
+            {/* Toaster and AppContent only, blobs removed */}
             <Toaster
               position="top-center"
               toastOptions={{

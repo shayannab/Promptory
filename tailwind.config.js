@@ -7,6 +7,17 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["Clash Display", "Sora", "Urbanist", "sans-serif"], // Use with className="font-heading"
+        body: ["Inter", "Outfit", "Space Grotesk", "sans-serif"], // Use with className="font-body"
+      },
+      colors: {
+        glass: 'rgba(255,255,255,0.08)',
+      },
+      transitionProperty: {
+        'colors': 'color, background-color, border-color, text-decoration-color, fill, stroke',
+      },
       animation: {
         blob: "blob 7s infinite",
       },

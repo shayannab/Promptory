@@ -2,20 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global theme transition */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Ensure smooth transitions for theme changes */
-html {
-  transition: background-color 0.3s ease;
+html, body, #root {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  @apply font-body bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white transition-colors duration-500 min-h-screen;
+}
+
+
+
+html.dark body {
+  @apply bg-gradient-to-br from-[#0F172A] via-slate-900 to-blue-950 text-white;
+}
+
+html:not(.dark) body {
+  @apply bg-gradient-to-br from-white via-blue-50 to-blue-100 text-slate-900;
 }
 
 /* Custom animation delays for blob animations */
@@ -57,6 +59,7 @@ body {
 /* Custom scrollbar for better theme integration */
 ::-webkit-scrollbar {
   width: 8px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-track {
@@ -64,12 +67,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.5);
-  border-radius: 4px;
+  background: rgba(100,116,139,0.15);
+  border-radius: 8px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.5);
+  background: rgba(100,116,139,0.35);
 }
 
 ::-webkit-scrollbar-thumb:hover {

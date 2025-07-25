@@ -6,6 +6,8 @@ import { useUser } from '../utils/UserContext';
 import { getPromptFeedbackFromGroq } from '../utils/groqClient';
 import QuickActionsMenu from '../components/sections/QuickActionsMenu';
 import { motion } from 'framer-motion';
+import { ClipboardIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import confetti from 'canvas-confetti';
 
 function FeedbackModal({ show, onClose, feedback, loading }) {
   if (!show) return null;
@@ -42,6 +44,9 @@ function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [feedbackModal, setFeedbackModal] = useState({ show: false, loading: false, feedback: null });
   const [selectPromptModal, setSelectPromptModal] = useState(false);
+  // Add for copy tooltip animation
+  const [copiedPromptId, setCopiedPromptId] = useState(null);
+  const [lastPromptCount, setLastPromptCount] = useState(0);
 
   useEffect(() => {
     if (user) fetchPrompts();
@@ -58,7 +63,20 @@ function Dashboard() {
       console.error('Error fetching prompts:', error.message);
       toast.error('Failed to load prompts');
     } else {
+      // Confetti if prompt was just added
+      if (lastPromptCount && data.length > lastPromptCount) {
+        confetti({
+          particleCount: 48,
+          spread: 70,
+          origin: { y: 0.7 },
+          startVelocity: 22,
+          scalar: 0.8,
+          ticks: 90,
+          colors: ['#60A5FA', '#A78BFA', '#34D399', '#FDE68A', '#818CF8'],
+        });
+      }
       setPrompts(data);
+      setLastPromptCount(data.length);
     }
     setLoading(false);
   };
@@ -88,7 +106,9 @@ function Dashboard() {
   const handleCopyShareLink = (promptId) => {
     const url = `${window.location.origin}/public/${promptId}`;
     navigator.clipboard.writeText(url);
+    setCopiedPromptId(promptId);
     toast.success('🔗 Link copied!');
+    setTimeout(() => setCopiedPromptId(null), 1200);
   };
 
   const handleGetFeedback = async (prompt) => {
@@ -130,14 +150,14 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen w-full relative overflow-hidden">
       {/* Background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-10 w-72 h-72 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-6 sm:py-8 pb-20">
+      <div className="relative z-10 py-6 sm:py-8 pb-20 mt-8 mb-8">
         <Toaster position="top-center" reverseOrder={false} />
         {/* Personal Greeting */}
         <div className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
@@ -152,12 +172,14 @@ function Dashboard() {
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-400">Manage your AI prompts with ease</p>
             </div>
-            <Link
-              to="/add"
+            <motion.button
+              whileTap={{ scale: 0.93 }}
               className="mt-6 lg:mt-0 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 text-white px-8 py-4 rounded-2xl font-bold hover:from-blue-700 hover:via-cyan-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300 shadow-lg"
+              onClick={() => window.location.href = '/add'}
+              type="button"
             >
               + Add New Prompt
-            </Link>
+            </motion.button>
           </div>
 
           {/* Stats Cards */}
@@ -230,56 +252,107 @@ function Dashboard() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
         ) : filteredPrompts.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-3xl">📝</span>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-28 h-28 mb-6 flex items-center justify-center">
+              {/* Cute empty state illustration (speech bubble + spark) */}
+              <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="45" cy="45" rx="40" ry="32" fill="url(#bubble)" fillOpacity="0.18" />
+                <ellipse cx="45" cy="45" rx="36" ry="28" fill="url(#bubble2)" fillOpacity="0.12" />
+                <path d="M45 20 L48 32 L60 36 L48 40 L45 52 L42 40 L30 36 L42 32 Z" fill="url(#spark)" stroke="url(#sparkStroke)" strokeWidth="1.5" strokeLinejoin="round" />
+                <defs>
+                  <linearGradient id="bubble" x1="5" y1="13" x2="85" y2="77" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#60A5FA" />
+                    <stop offset="1" stopColor="#A78BFA" />
+                  </linearGradient>
+                  <linearGradient id="bubble2" x1="9" y1="17" x2="81" y2="73" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#34D399" />
+                    <stop offset="1" stopColor="#6366F1" />
+                  </linearGradient>
+                  <linearGradient id="spark" x1="30" y1="20" x2="60" y2="52" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FDE68A" />
+                    <stop offset="1" stopColor="#818CF8" />
+                  </linearGradient>
+                  <linearGradient id="sparkStroke" x1="30" y1="20" x2="60" y2="52" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FDE68A" />
+                    <stop offset="1" stopColor="#818CF8" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No prompts found</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">Create your first prompt to get started!</p>
+            <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-2">No prompts? That’s kinda empty energy 💭</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Add your first prompt and let the magic begin!</p>
             <Link
               to="/add"
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-300"
+              className="bg-gradient-to-r from-emerald-400 via-blue-500 to-purple-500 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-[0_0_20px_#10B98155] hover:scale-105 transition-all duration-300"
             >
-              Create First Prompt
+              Add Prompt
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPrompts.map((prompt) => (
               <motion.div
                 key={prompt.id}
-                className="group bg-white/5 dark:bg-black/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-white/10 shadow-xl hover:bg-white/10 dark:hover:bg-black/60 transition-all duration-300 hover:scale-[1.03] focus-within:scale-[1.03] ring-0 focus-within:ring-2 focus-within:ring-blue-400"
-                whileHover={{ scale: 1.03, boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)' }}
+                className="group bg-white/10 dark:bg-black/30 backdrop-blur-lg rounded-3xl p-6 border border-white/20 shadow-2xl hover:scale-105 hover:shadow-2xl transition-all duration-300 flex flex-col min-h-[260px]"
+                whileHover={{ scale: 1.05, boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)' }}
                 whileTap={{ scale: 0.98 }}
                 tabIndex={0}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-300 transition-colors flex items-center gap-1">
-                      {prompt.is_public && (
-                        <span title="Public" className="px-2 py-1 bg-green-600/80 text-white text-xs rounded-full mr-2 animate-pulse">Public</span>
-                      )}
+                    <h3 className="text-xl font-heading font-bold text-white group-hover:text-emerald-300 transition-colors flex items-center gap-1">
                       {prompt.title}
                     </h3>
-                    {/* Share icon with tooltip */}
-                    {prompt.is_public && (
-                      <button
-                        className="ml-1 px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs flex items-center gap-1 transition-all"
-                        onClick={() => handleCopyShareLink(prompt.id)}
-                        title="Copy public share link. Anyone with this link can view this prompt."
-                      >
-                        <span role="img" aria-label="share">🔗</span> Share
-                      </button>
-                    )}
+                    {/* Copy icon with tooltip/animation */}
+                    <button
+                      className="ml-1 p-1 rounded-full bg-white/10 hover:bg-emerald-400/20 transition-colors relative"
+                      onClick={() => handleCopyShareLink(prompt.id)}
+                      title="Copy prompt text"
+                    >
+                      <span className="relative inline-block">
+                        <ClipboardIcon className="w-5 h-5 text-emerald-300" />
+                        {copiedPromptId === prompt.id && (
+                          <>
+                            {/* Sparkle animation */}
+                            <motion.svg
+                              initial={{ opacity: 0, scale: 0.7 }}
+                              animate={{ opacity: 1, scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
+                              exit={{ opacity: 0, scale: 0.7 }}
+                              transition={{ duration: 0.5, ease: 'easeOut' }}
+                              className="absolute -top-2 -right-2 w-5 h-5 pointer-events-none"
+                              viewBox="0 0 20 20"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g filter="url(#sparkle-glow)">
+                                <path d="M10 2 L11 7 L16 8 L11 9 L10 14 L9 9 L4 8 L9 7 Z" fill="#FDE68A" fillOpacity="0.7" />
+                              </g>
+                              <defs>
+                                <filter id="sparkle-glow" x="0" y="0" width="20" height="20" filterUnits="userSpaceOnUse">
+                                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+                                  <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                  </feMerge>
+                                </filter>
+                              </defs>
+                            </motion.svg>
+                          </>
+                        )}
+                      </span>
+                      {copiedPromptId === prompt.id && (
+                        <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded bg-emerald-500 text-white shadow font-semibold animate-fadeIn z-10">Copied!</span>
+                      )}
+                    </button>
                   </div>
-                  <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold rounded-full">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm bg-gradient-to-r ${prompt.category === 'Inspiration' ? 'from-pink-400 to-yellow-300 text-white' : prompt.category === 'Code' ? 'from-blue-500 to-cyan-400 text-white' : 'from-emerald-400 to-blue-400 text-white'}`}>
                     {getCategoryLabel(prompt.category)}
                   </span>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed text-base">
+                <p className="text-white/90 mb-4 line-clamp-3 leading-relaxed text-base font-body">
                   {prompt.description}
                 </p>
-                <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
+                <div className="flex flex-wrap gap-3 text-xs text-white/60 mb-4">
                   <span>Created: {new Date(prompt.created_at).toLocaleString()}</span>
                   {prompt.updated_at && (
                     <span>Last Edited: {new Date(prompt.updated_at).toLocaleString()}</span>
@@ -291,37 +364,29 @@ function Dashboard() {
                     id={`public-toggle-${prompt.id}`}
                     checked={!!prompt.is_public}
                     onChange={() => handlePublicToggle(prompt)}
-                    className="form-checkbox h-4 w-4 text-blue-600 transition-all"
+                    className="form-checkbox h-4 w-4 text-emerald-400 transition-all"
                   />
-                  <label htmlFor={`public-toggle-${prompt.id}`} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none" title="Anyone with the link can view this prompt">
+                  <label htmlFor={`public-toggle-${prompt.id}`} className="text-sm text-white/80 cursor-pointer select-none" title="Anyone with the link can view this prompt">
                     Make Public
                   </label>
                 </div>
-                <div className="flex gap-3">
-                  <Link
-                    to={`/edit/${prompt.id}`}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 text-center"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => setPromptToDelete(prompt.id)}
-                    className="flex-1 bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-500/30 transition-all duration-300 border border-red-500/30"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    onClick={() => handleGetFeedback(prompt)}
-                    className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700 transition-all duration-300 border border-purple-700/30"
-                  >
-                    Get Feedback
-                  </button>
-                  <Link
-                    to={`/playground?promptId=${prompt.id}`}
-                    className="flex-1 bg-black/30 text-cyan-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-cyan-700 hover:text-white transition-all duration-300 border border-cyan-700/30 text-center"
-                  >
-                    Try in Playground
-                  </Link>
+                <div className="flex gap-3 mt-auto">
+                  {user && (
+                    <>
+                      <Link
+                        to={`/edit/${prompt.id}`}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 text-center shadow"
+                      >
+                        <PencilSquareIcon className="w-4 h-4 inline-block mr-1 align-text-bottom" /> Edit
+                      </Link>
+                      <button
+                        onClick={() => setPromptToDelete(prompt.id)}
+                        className="flex-1 bg-red-500/20 text-red-400 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-500/30 transition-all duration-300 border border-red-500/30 shadow"
+                      >
+                        <TrashIcon className="w-4 h-4 inline-block mr-1 align-text-bottom" /> Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </motion.div>
             ))}
